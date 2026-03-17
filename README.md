@@ -43,8 +43,6 @@ The solver uses a finite-volume framework. Convective (hyperbolic) terms can be 
 
 ### Getting Started
 
-#### Installation
-
 Clone the repository:
 
 ```
@@ -56,8 +54,6 @@ Install dependencies:
 ```
 pip install -r requirements.txt
 ```
-
-#### Running a Simulation
 
 Simulations are launched via the command line using ```main.py``` and a setup file from the ```setups/``` directory:
 
