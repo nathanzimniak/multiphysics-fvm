@@ -22,7 +22,7 @@ The discretization follows a finite-volume approach. Convective (hyperbolic) ter
     </tr>
     <tr>
       <td><b>Diffusive solver</b></td>
-      <td><code>Centered</code></td>
+      <td><code>Central</code></td>
     </tr>
     <tr>
       <td><b>Reconstruction</b></td>
