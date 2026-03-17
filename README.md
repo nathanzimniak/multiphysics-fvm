@@ -1,29 +1,74 @@
-# Multiphysics FVM
+## Multiphysics FVM
 
-A modular, extensible 3D finite-volume solver designed for multiphysics simulations on structured grids, supporting cartesian, cylindrical, and spherical coordinate systems.
+<br>
 
-Built around a general finite-volume framework, the code can accommodate a wide range of physical models without modifying the core infrastructure. Each physics module is fully self-contained and interchangeable, making it straightforward to implement and switch between different physical models.
+A modular and extensible **3D finite-volume solver** designed for **multiphysics simulations** on structured grids, supporting cartesian, cylindrical, and spherical coordinate systems.
 
-Currently shipped with a compressible Navier-Stokes module, available numerical schemes include the Rusanov (local Lax-Friedrichs) Riemann solver, a centered diffusive solver, MUSCL reconstruction with the minmod slope limiter, and explicit Euler and RK4 time integrators. Reference setups include acoustic wave propagation in spherical coordinates, Kelvin-Helmholtz instability, and Rayleigh-Taylor instability.
+The solver is built around a general finite-volume framework, allowing the integration of multiple physical models without modifying the core infrastructure. Each physics module is self-contained, interchangeable, and easy to extend. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
 
-Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
+Currently implemented physics modules: ```navier_stokes```, ```heat```, ```radiative_transfert```.
 
-## Installation
+---
 
-Clone the repository and install the dependencies:
-```bash
-git clone https://github.com/username/multiphysics_fvm.git
-cd multiphysics_fvm
+### Numerical Methods
+
+The solver uses a finite-volume framework. Convective (hyperbolic) terms can be treated using Godunov-type methods (Riemann solvers), while diffusive (parabolic) terms are handled with centered schemes. The numerical pipeline is decomposed into modular building blocks, each of which can be independently selected and extended. The currently implemented methods are summarized below:
+
+<table>
+  <tbody>
+    <tr>
+      <td><b>Riemann solver</b></td>
+      <td><code>Rusanov (local Lax-Friedrichs)</code></td>
+    </tr>
+    <tr>
+      <td><b>Diffusive solver</b></td>
+      <td><code>Centered</code></td>
+    </tr>
+    <tr>
+      <td><b>Reconstruction</b></td>
+      <td><code>Piecewise constant</code>, <code>MUSCL</code></td>
+    </tr>
+    <tr>
+      <td><b>Slope limiter</b></td>
+      <td><code>Minmod</code></td>
+    </tr>
+    <tr>
+      <td><b>Time integration</b></td>
+      <td><code>Explicit Euler</code>, <code>RK4</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+### Getting Started
+
+#### Installation
+
+Clone the repository:
+
+```
+git clone https://github.com/nathanzimniak/multiphysics-fvm.git
+```
+
+Install dependencies:
+
+```
 pip install -r requirements.txt
 ```
 
-## Running a simulation
+#### Running a Simulation
 
-Simulations are launched from the command line using `main.py` and the name of a setup file located in the `setups/` directory:
-```bash
+Simulations are launched via the command line using ```main.py``` and a setup file from the ```setups/``` directory:
+
+```
 python main.py --setup acoustic_spherical
 ```
 
-## Contributing
+You can create new simulations by adding configuration files in the ```setups/``` folder.
 
-If you find a bug or have a suggestion, feel free to open an issue.
+---
+
+### Contributing
+
+Contributions are welcome. Feel free to open an issue or submit a pull request if you find a bug, want to add a numerical method, or want to implement a new physical module.
