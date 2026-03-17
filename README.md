@@ -6,7 +6,7 @@ A modular and extensible **3D finite-volume solver** designed for **multiphysics
 
 The solver is built around a general finite-volume framework, allowing the integration of multiple physical models without modifying the core infrastructure. Each physics module is self-contained, interchangeable, and easy to extend. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
 
-Currently implemented physics modules: ```navier_stokes```, ```heat```, ```radiative_transfert```.
+Currently implemented physics modules: ```navier_stokes```.
 
 ---
 
