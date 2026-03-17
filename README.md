@@ -4,7 +4,7 @@
 
 A modular and extensible **3D finite-volume solver** designed for **multiphysics simulations** on structured grids, supporting cartesian, cylindrical, and spherical coordinate systems.
 
-The solver is built around a general finite-volume framework, allowing the integration of multiple physical models without modifying the core infrastructure. Each physics module is self-contained, interchangeable, and easy to extend. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
+The solver is built on a general finite-volume framework. It allows the integration of multiple physical models without modifying the core infrastructure. Each physics module is self-contained, interchangeable, and easy to extend. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
 
 Currently implemented physics modules: ```navier_stokes```.
 
@@ -12,7 +12,7 @@ Currently implemented physics modules: ```navier_stokes```.
 
 ### Numerical Methods
 
-The solver uses a finite-volume framework. Convective (hyperbolic) terms can be treated using Godunov-type methods (Riemann solvers), while diffusive (parabolic) terms are handled with centered schemes. The numerical pipeline is decomposed into modular building blocks, each of which can be independently selected and extended. The currently implemented methods are summarized below:
+The discretization follows a finite-volume approach. Convective (hyperbolic) terms are treated using Godunov-type methods (Riemann solvers), while diffusive (parabolic) terms are handled with centered schemes. The numerical pipeline is decomposed into modular building blocks, each of which can be independently selected and extended. The currently implemented methods are summarized below:
 
 <table>
   <tbody>
@@ -67,4 +67,4 @@ You can create new simulations by adding configuration files in the ```setups/``
 
 ### Contributing
 
-Contributions are welcome. Feel free to open an issue or submit a pull request if you find a bug, want to add a numerical method, or want to implement a new physical module.
+Contributions are welcome. Feel free to open an issue or submit a pull request if you find a bug, want to add a numerical method, or implement a new physical module.
