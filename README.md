@@ -18,7 +18,7 @@ The discretization follows a finite-volume approach. Convective (hyperbolic) ter
   <tbody>
     <tr>
       <td>Riemann solver</td>
-      <td><code>Rusanov (local Lax-Friedrichs)</code></td>
+      <td><code>Rusanov</code>, <code>HLL</code></td>
     </tr>
     <tr>
       <td>Diffusive solver</td>
