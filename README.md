@@ -17,23 +17,23 @@ The discretization follows a finite-volume approach. Convective (hyperbolic) ter
 <table>
   <tbody>
     <tr>
-      <td><b>Riemann solver</b></td>
+      <td>Riemann solver</td>
       <td><code>Rusanov (local Lax-Friedrichs)</code></td>
     </tr>
     <tr>
-      <td><b>Diffusive solver</b></td>
+      <td>Diffusive solver</td>
       <td><code>Central</code></td>
     </tr>
     <tr>
-      <td><b>Reconstruction</b></td>
+      <td>Reconstruction</td>
       <td><code>Piecewise constant</code>, <code>MUSCL</code></td>
     </tr>
     <tr>
-      <td><b>Slope limiter</b></td>
+      <td>Slope limiter</td>
       <td><code>Minmod</code></td>
     </tr>
     <tr>
-      <td><b>Time integration</b></td>
+      <td>Time integration</td>
       <td><code>Explicit Euler</code>, <code>RK4</code></td>
     </tr>
   </tbody>
