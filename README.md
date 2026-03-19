@@ -34,7 +34,7 @@ The discretization follows a finite-volume approach. Convective (hyperbolic) ter
     </tr>
     <tr>
       <td>Time integration</td>
-      <td><code>Explicit Euler</code>, <code>RK4</code></td>
+      <td><code>Euler</code>, <code>RK3</code>, <code>SSPRK3</code>, <code>RK4</code></td>
     </tr>
   </tbody>
 </table>
