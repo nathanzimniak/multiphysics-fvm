@@ -30,7 +30,7 @@ The discretization follows a finite-volume approach. Convective (hyperbolic) ter
     </tr>
     <tr>
       <td>Slope limiter</td>
-      <td><code>Minmod</code></td>
+      <td><code>Minmod</code>, <code>Monotonized Central</code></td>
     </tr>
     <tr>
       <td>Time integration</td>
