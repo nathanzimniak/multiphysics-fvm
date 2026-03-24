@@ -9,7 +9,7 @@ The solver is built on a general finite-volume framework. It allows the integrat
 Currently implemented physics modules: ```navier_stokes```.
 
 <p align="center">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/navier_stokes.png">
+  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/navier_stoke.png">
 </p>
 
 ---
