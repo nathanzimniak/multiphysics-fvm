@@ -2,6 +2,12 @@
 
 <br>
 
+<p align="center">
+
+<img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/test3.png">
+
+</p>
+
 A modular and extensible **3D finite-volume solver** designed for **multiphysics simulations** on structured grids, supporting cartesian, cylindrical, and spherical coordinate systems.
 
 The solver is built on a general finite-volume framework. It allows the integration of multiple physical models without modifying the core infrastructure. Each physics module is self-contained, interchangeable, and easy to extend. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
