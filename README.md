@@ -62,7 +62,7 @@ pip install -r requirements.txt
 Simulations are launched via the command line using ```main.py``` and a setup file from the ```setups/``` directory:
 
 ```
-python main.py --setup kelvin-helmholtz
+python main.py --setup kelvin_helmholtz
 ```
 
 You can create new simulations by adding configuration files in the ```setups/``` folder.
