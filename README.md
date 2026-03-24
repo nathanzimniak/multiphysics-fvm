@@ -2,11 +2,11 @@
 
 <br>
 
-A modular and extensible **3D finite-volume solver** designed for **multiphysics simulations** on structured grids, supporting cartesian, cylindrical, and spherical coordinate systems.
+A modular and extensible **3D finite-volume framework** for structured grids (cartesian, cylindrical, spherical).
 
-The solver is built on a general finite-volume framework. It allows the integration of multiple physical models without modifying the core infrastructure. Each physics module is self-contained, interchangeable, and easy to extend. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
+It is designed to support **multiple physics modules** through a common solver interface. At the current stage, implemented modules are primarily run one at a time (uncoupled). However, the architecture is coupling-ready: tightly coupled or partitioned multiphysics workflows can be added incrementally without rewriting the solver core. Written in pure Python with NumPy, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
 
-Currently implemented physics modules: ```navier_stokes```.
+Currently implemented physics module: `navier_stokes`.
 
 <p align="center">
   <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/navier_stokes.png">
