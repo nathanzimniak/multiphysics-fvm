@@ -294,7 +294,7 @@ def compute_characteristic_velocity(
     
     Returns
     -------
-    vc : Dictionary of characteristic wave velocities in the fluid frame.
+    kappa : Dictionary of characteristic wave velocities in the fluid frame.
     """
 
     # Unpack conserved variables.
@@ -310,11 +310,11 @@ def compute_characteristic_velocity(
     cs = np.sqrt(gamma*P/rho)
 
     # Characteristic wave velocities in the fluid frame.
-    mu = {"contact": np.full(rho.shape,0),
+    kappa = {"contact": np.full(rho.shape,0),
           "acoustic_minus": -cs,
           "acoustic_plus": cs}
 
-    return mu
+    return kappa
 
 
 def compute_normal_velocity(
@@ -553,11 +553,11 @@ def compute_dt(
     C = compute_closure(U, grid, params)
 
     # Characteristic wave velocities in the fluid frame | shape (nx1+2, nx2+2, nx3+2).
-    mu = compute_characteristic_velocity(U, C, params)
+    kappa = compute_characteristic_velocity(U, C, params)
 
     # Characteristic wave velocities in the lab frame (lambda_k = u_n + mu_k) along each direction | shape (nx1, nx2, nx3).
     ing = (slice(1,-1), slice(1,-1), slice(1,-1))
-    lambda_ = {d: {w: v[d][ing] + mu[w][ing] for w in mu} for d in v}
+    lambda_ = {d: {w: v[d][ing] + kappa[w][ing] for w in kappa} for d in v}
 
     # Maximum absolute characteristic velocities along each direction | shape (nx1+2, nx2+2, nx3+2).
     max_lambda = {d: np.maximum.reduce([np.abs(l) for l in lambda_[d].values()]) for d in lambda_}
