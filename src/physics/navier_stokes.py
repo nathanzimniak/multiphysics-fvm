@@ -540,6 +540,9 @@ def compute_dt(
     Lx2 = L["x2"]
     Lx3 = L["x3"]
 
+    # Unpack physical parameters.
+    mu = params["dynamic_viscosity"]
+
     # Primitive variables.
     vx1 = rhovx1/rho
     vx2 = rhovx2/rho
@@ -559,14 +562,20 @@ def compute_dt(
     ing = (slice(1,-1), slice(1,-1), slice(1,-1))
     lambda_ = {d: {w: v[d][ing] + kappa[w][ing] for w in kappa} for d in v}
 
-    # Maximum absolute characteristic velocities along each direction | shape (nx1+2, nx2+2, nx3+2).
+    # Maximum absolute characteristic velocities along each direction | shape (nx1, nx2, nx3).
     max_lambda = {d: np.maximum.reduce([np.abs(l) for l in lambda_[d].values()]) for d in lambda_}
 
+    # Characteristic diffusivity.
+    nu = np.max(mu/rho[ing])
+
     # Maximum local CFL rate | shape (nx1, nx2, nx3) etc.
-    cfl_rate_loc = np.maximum.reduce([max_lambda["x1"]/Lx1, max_lambda["x2"]/Lx2, max_lambda["x3"]/Lx3])
+    cfl_rate_loc_c = np.maximum.reduce([max_lambda["x1"]/Lx1, max_lambda["x2"]/Lx2, max_lambda["x3"]/Lx3])
+    cfl_rate_loc_d = 2*nu*(1/Lx1**2 + 1/Lx2**2 + 1/Lx3**2)
 
     # Maximum domain-wide CFL rate.
-    cfl_rate = np.max(cfl_rate_loc)
+    cfl_rate_c = np.max(cfl_rate_loc_c)
+    cfl_rate_d = np.max(cfl_rate_loc_d)
+    cfl_rate   = cfl_rate_c + cfl_rate_d
 
     # CFL time step based on the fastest signal speed in the domain.
     dt = cfl/cfl_rate
@@ -581,7 +590,7 @@ def compute_rhs(
     space_schemes : dict,
     ) -> dict:
     """
-    Compute the right-hand side of the 3D compressible Navier–Stokes equations.
+    Compute the right-hand side of the 3D compressible Navier-Stokes equations.
 
     Arguments
     ---------
