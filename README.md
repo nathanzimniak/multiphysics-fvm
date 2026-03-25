@@ -10,7 +10,6 @@ Currently implemented physics module: `navier_stokes`, `heat`.
 
 <p align="center">
   <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/navier_stokes.png">
-
   <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/heat.png">
 </p>
 
