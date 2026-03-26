@@ -125,12 +125,12 @@ def compute_closure(
     vx3   = vx3[ing]
 
     # Velocity divergence.
-    div_v = (dvx1_dx1 + dvx2_dx2 + dvx3_dx3 + vx1*(dx1_ln_hx2+dx1_ln_hx3)/hx1 + vx2*(dx2_ln_hx1+dx2_ln_hx3)/hx2 + vx3*(dx3_ln_hx1+dx3_ln_hx2)/hx3)
+    divv = (dvx1_dx1 + dvx2_dx2 + dvx3_dx3 + vx1*(dx1_ln_hx2+dx1_ln_hx3)/hx1 + vx2*(dx2_ln_hx1+dx2_ln_hx3)/hx2 + vx3*(dx3_ln_hx1+dx3_ln_hx2)/hx3)
 
     # Viscous tensor from Stokes hypothesis.
-    Tx1x1 = mu*(2*dvx1_dx1 - (2.0/3.0)*div_v)
-    Tx2x2 = mu*(2*(dvx2_dx2 + vx1*dx1_ln_hx2/hx1) - (2.0/3.0)*div_v)
-    Tx3x3 = mu*(2*(dvx3_dx3 + vx1*dx1_ln_hx3/hx1 + vx2*dx2_ln_hx3/hx2) - (2.0/3.0)*div_v)
+    Tx1x1 = mu*(2*dvx1_dx1 - (2.0/3.0)*divv)
+    Tx2x2 = mu*(2*(dvx2_dx2 + vx1*dx1_ln_hx2/hx1) - (2.0/3.0)*divv)
+    Tx3x3 = mu*(2*(dvx3_dx3 + vx1*dx1_ln_hx3/hx1 + vx2*dx2_ln_hx3/hx2) - (2.0/3.0)*divv)
     Tx1x2 = mu*(dvx1_dx2 + dvx2_dx1 - vx2*dx1_ln_hx2/hx1 + vx1*dx2_ln_hx1/hx2)
     Tx1x3 = mu*(dvx1_dx3 + dvx3_dx1 - vx3*dx1_ln_hx3/hx1 + vx1*dx3_ln_hx1/hx3)
     Tx2x3 = mu*(dvx2_dx3 + dvx3_dx2 - vx3*dx2_ln_hx3/hx2 + vx2*dx3_ln_hx2/hx3)
@@ -310,9 +310,9 @@ def compute_characteristic_velocity(
     cs = np.sqrt(gamma*P/rho)
 
     # Characteristic wave velocities in the fluid frame.
-    kappa = {"contact": np.full(rho.shape,0),
-          "acoustic_minus": -cs,
-          "acoustic_plus": cs}
+    kappa = {"contact"        : np.full(rho.shape,0),
+             "acoustic_minus" : -cs,
+             "acoustic_plus"  : cs}
 
     return kappa
 
