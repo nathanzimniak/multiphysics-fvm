@@ -238,7 +238,6 @@ def compute_diffusive_flux(
     rhovx1 = U["momentum_x1"]
     rhovx2 = U["momentum_x2"]
     rhovx3 = U["momentum_x3"]
-    rhoE   = U["energy_density"]
 
     # Unpack closure variables.
     Tx1x1 = C["Tx1x1"]
@@ -260,7 +259,6 @@ def compute_diffusive_flux(
     vx1 = rhovx1/rho
     vx2 = rhovx2/rho
     vx3 = rhovx3/rho
-    E   = rhoE/rho
 
     # Diffusive fluxes.
     Fd = {"mass_density"   : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0},
