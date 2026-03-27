@@ -134,7 +134,7 @@ def run(
     # Time loop.
     t = t_start
     n = 0
-    while t < t_end:
+    while t <= t_end:
 
         # Compute time step.
         dt = compute_dt(U, params, grid, cfl)
