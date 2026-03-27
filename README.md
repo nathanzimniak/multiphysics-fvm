@@ -17,7 +17,9 @@
 </p>
 
 <br>
+
 ---
+
 <br>
 
 ### Physical modules
@@ -27,7 +29,9 @@ The framework is designed to support **multiple physics modules** through a comm
 Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
 
 <br>
+
 ---
+
 <br>
 
 ### Numerical Methods
@@ -60,7 +64,9 @@ The discretization follows a finite-volume approach. Convective (*hyperbolic*) t
 </table>
 
 <br>
+
 ---
+
 <br>
 
 ### Getting Started
@@ -86,7 +92,9 @@ python main.py --setup kelvin_helmholtz
 Outputs are saved in **HDF5** format. You can create new simulations by adding configuration files in the ```setups/``` folder.
 
 <br>
+
 ---
+
 <br>
 
 ### Contributing
