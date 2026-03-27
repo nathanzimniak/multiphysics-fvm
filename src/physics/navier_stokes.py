@@ -283,7 +283,7 @@ def compute_characteristic_velocity(
     params : dict
     ) -> dict:
     """
-    Compute the characteristic wave velocities in the fluid frame.
+    Compute the characteristic wave velocities in the moving frame.
     
     Arguments
     ---------
@@ -293,7 +293,7 @@ def compute_characteristic_velocity(
     
     Returns
     -------
-    kappa : Dictionary of characteristic wave velocities in the fluid frame.
+    kappa : Dictionary of characteristic wave velocities in the moving frame.
     """
 
     # Unpack conserved variables.
@@ -308,7 +308,7 @@ def compute_characteristic_velocity(
     # Sound speed.
     cs = np.sqrt(ga*P/rho)
 
-    # Characteristic wave velocities in the fluid frame.
+    # Characteristic wave velocities in the moving frame.
     kappa = {"contact"        : np.full(rho.shape,0),
              "acoustic_minus" : -cs,
              "acoustic_plus"  : cs}
@@ -557,10 +557,10 @@ def compute_dt(
     # Closure variables | shape (nx1+2, nx2+2, nx3+2).
     C = compute_closure(U, params, grid)
 
-    # Characteristic wave velocities in the fluid frame | shape (nx1+2, nx2+2, nx3+2).
+    # Characteristic wave velocities in the moving frame | shape (nx1+2, nx2+2, nx3+2).
     kappa = compute_characteristic_velocity(U, C, params)
 
-    # Characteristic wave velocities in the lab frame (lambda_k = u_n + mu_k) along each direction | shape (nx1, nx2, nx3).
+    # Characteristic wave velocities in the fixed frame (lambda_k = u_n + mu_k) along each direction | shape (nx1, nx2, nx3).
     ing = (slice(1,-1), slice(1,-1), slice(1,-1))
     lambda_ = {d: {w: v[d][ing] + kappa[w][ing] for w in kappa} for d in v}
 
@@ -644,7 +644,7 @@ def compute_rhs(
             "x2": compute_diffusive_flux(U_R["x2"], C_R["x2"], n["x2"]),
             "x3": compute_diffusive_flux(U_R["x3"], C_R["x3"], n["x3"])}
 
-    # Characteristic wave velocities in the fluid frame on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    # Characteristic wave velocities in the moving frame on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
     kappa_L  = {"x1": compute_characteristic_velocity(U_L["x1"], C_L["x1"], params),
                 "x2": compute_characteristic_velocity(U_L["x2"], C_L["x2"], params),
                 "x3": compute_characteristic_velocity(U_L["x3"], C_L["x3"], params)}
@@ -662,7 +662,7 @@ def compute_rhs(
             "x2": compute_normal_velocity(U_R["x2"], n["x2"]),
             "x3": compute_normal_velocity(U_R["x3"], n["x3"])}
 
-    # Characteristic wave velocities in the lab frame (lambda_k = u_n + kappa_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    # Characteristic wave velocities in the fixed frame (lambda_k = u_n + kappa_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
     lambda_L = {d: {w: vn_L[d] + kappa_L[d][w] for w in kappa_L[d]} for d in kappa_L}
     lambda_R = {d: {w: vn_R[d] + kappa_R[d][w] for w in kappa_R[d]} for d in kappa_R}
 
