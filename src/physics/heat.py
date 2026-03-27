@@ -39,8 +39,8 @@ def allocate_u(
 
 def compute_closure(
     U      : dict,
-    grid   : dict,
-    params : dict
+    params : dict,
+    grid   : dict
     ) -> dict:
     """
     Compute closure variables from the conserved variables.
@@ -59,16 +59,16 @@ def compute_closure(
     # Unpack conserved variables.
     rhocpT = U["internal_energy_density"]
 
+    # Unpack physical parameters.
+    cp  = params["specific_heat_capacity"]
+    k   = params["thermal_conductivity"]
+    rho = params["mass_density"]
+
     # Unpack physical lengths.
     L = grid["cell"]["geometry"]["length"]
     Lx1 = L["x1"]
     Lx2 = L["x2"]
     Lx3 = L["x3"]
-    
-    # Unpack physical parameters.
-    cp  = params["specific_heat_capacity"]
-    k   = params["thermal_conductivity"]
-    rho = params["mass_density"]
 
     # Primitive variables.
     T = rhocpT/(rho*cp)
@@ -102,7 +102,42 @@ def compute_closure(
     return C
 
 
+def compute_convective_flux(
+    U      : dict,
+    C      : dict,
+    params : dict,
+    n      : np.array
+    ) -> dict:
+    """
+    Compute the convective (hyperbolic) flux normal to an interface.
+
+    Arguments
+    ---------
+    U : Conserved variable arrays.
+    C : Closure variable arrays.
+    n : Unit normal vector to the interface.
+
+    Returns
+    -------
+    Fc_n : Normal convective flux for each conserved variable.
+    """
+
+    # Unpack normal vector components.
+    nx1 = n[0]
+    nx2 = n[1]
+    nx3 = n[2]
+
+    # Convective fluxes.
+    Fc = {"internal_energy_density" : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0}}
+
+    # Normal convective fluxes.
+    Fc_n = {"internal_energy_density" : nx1*Fc["internal_energy_density"]["x1"] + nx2*Fc["internal_energy_density"]["x2"] + nx3*Fc["internal_energy_density"]["x3"]}
+
+    return Fc_n
+
+
 def compute_diffusive_flux(
+    U : dict,
     C : dict,
     n : np.ndarray
     ) -> dict:
@@ -120,11 +155,6 @@ def compute_diffusive_flux(
     Fd_n : Normal diffusive flux for each conserved variable.
     """
 
-    # Unpack closure variables.
-    phix1 = C["phix1"]
-    phix2 = C["phix2"]
-    phix3 = C["phix3"]
-
     # Unpack normal vector components.
     nx1 = n[0]
     nx2 = n[1]
@@ -139,14 +169,115 @@ def compute_diffusive_flux(
     return Fd_n
 
 
-def compute_physical_source(
+def compute_characteristic_velocity(
+    U      : dict,
+    C      : dict,
     params : dict
     ) -> dict:
     """
-    Compute the volumetric heat source terms.
+    Compute the characteristic wave velocities in the fluid frame.
+    
+    Arguments
+    ---------
+    U      : Conserved variable arrays.
+    C      : Closure variable arrays.
+    params : Physical parameters.
+    
+    Returns
+    -------
+    kappa : Dictionary of characteristic wave velocities in the fluid frame.
+    """
+
+    # Characteristic wave velocities in the fluid frame.
+    kappa = {"None" : None}
+
+    return kappa
+
+
+def compute_normal_velocity(
+    U : dict,
+    n : np.ndarray
+    ) -> np.ndarray:
+    """
+    Compute the normal velocity at an interface.
 
     Arguments
     ---------
+    U : Conserved variable arrays.
+    n : Unit normal vector to the interface.
+
+    Returns
+    -------
+    v_n : Normal velocity.
+    """
+
+    # Unpack conserved variables.
+    rho    = U["mass_density"]
+    rhovx1 = U["momentum_x1"]
+    rhovx2 = U["momentum_x2"]
+    rhovx3 = U["momentum_x3"]
+
+    # Unpack normal vector components.
+    nx1 = n[0]
+    nx2 = n[1]
+    nx3 = n[2]
+
+    # Primitive variables.
+    vx1 = rhovx1/rho
+    vx2 = rhovx2/rho
+    vx3 = rhovx3/rho
+
+    # Normal velocity.
+    v_n = nx1*vx1 + nx2*vx2 + nx3*vx3
+
+    return v_n
+
+
+def compute_geometric_source(
+    U      : dict,
+    C      : dict,
+    params : dict,
+    grid   : dict
+    ) -> dict:
+    """
+    Compute the convective and diffusive geometric source terms for curvilinear coordinates.
+
+    Arguments
+    ---------
+    U      : Conserved variable arrays (with ghost cells).
+    C      : Closure variable arrays (with ghost cells).
+    params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
+
+    Returns
+    -------
+    sg : Geometric source terms on the physical domain.
+    """
+
+    # Convective (hyperbolic) geometric source terms.
+    sgc = {"internal_energy_density" : 0.0}
+    
+    # Diffusive (parabolic) geometric source terms.
+    sgd = {"internal_energy_density" : 0.0}
+
+    # Total geometric source terms.
+    sg = {k: sgc[k] + sgd[k] for k in sgc}
+
+    return sg
+
+
+def compute_physical_source(
+    U      : dict,
+    C      : dict,
+    params : dict
+    ) -> dict:
+    """
+    Compute the physical source terms.
+
+    Arguments
+    ---------
+    U      : Conserved variable arrays (with ghost cells).
+    C      : Closure variable arrays.
     params : Physical parameters.
 
     Returns
@@ -157,19 +288,19 @@ def compute_physical_source(
     # Unpack physical parameters
     q = params["volumetric_heat_source"]
 
-    # Volumetric heat source terms.
-    spq = {"internal_energy_density" : q}
+    # Heat source terms.
+    sph = {"internal_energy_density" : q}
 
     # Total physical source terms.
-    sp = spq #{k: spq[k] + sp?[k] for k in spq} # For future implementation.
+    sp = sph
 
     return sp
 
 
 def compute_dt(
     U      : dict,
-    grid   : dict,
     params : dict,
+    grid   : dict,
     cfl    : float
     ) -> float:
     """
@@ -178,8 +309,8 @@ def compute_dt(
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
-    grid   : Discrete grid quantities, coordinates, and domain config.
     params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
     cfl    : Courant–Friedrichs–Lewy number.
 
     Returns
@@ -205,8 +336,9 @@ def compute_dt(
     cfl_rate_loc_d = 2*nu*(1/Lx1**2 + 1/Lx2**2 + 1/Lx3**2)
 
     # Maximum domain-wide CFL rate.
+    cfl_rate_c = 0.0
     cfl_rate_d = np.max(cfl_rate_loc_d)
-    cfl_rate   = cfl_rate_d
+    cfl_rate   = cfl_rate_c + cfl_rate_d
 
     # CFL time step based on the fastest signal speed in the domain.
     dt = cfl/cfl_rate
@@ -243,22 +375,62 @@ def compute_rhs(
 
     # Unpack numerical schemes.
     slope_limiter    = space_schemes["slope_limiter"]
+    riemann_solver   = None
     diffusive_solver = space_schemes["diffusive_solver"]
 
     # Closure variables | shape (nx1+2, nx2+2, nx3+2).
-    C = compute_closure(U, grid, params)
+    C = compute_closure(U, params, grid)
+
+    # Conserved variables on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    U_L, U_R = {"x1": None, "x2": None, "x3": None}, {"x1": None, "x2": None, "x3": None}
 
     # Closure variables on each left/right interface for along direction | shape (nx1+1, nx2, nx3) etc.
     C_L, C_R = space_schemes["reconstructor"](C, L, slope_limiter)
 
-    # Diffusive (parabolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    Fd_L = {"x1": compute_diffusive_flux(C_L["x1"], n["x1"]),
-            "x2": compute_diffusive_flux(C_L["x2"], n["x2"]),
-            "x3": compute_diffusive_flux(C_L["x3"], n["x3"])}
+    # Convective (hyperbolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    Fc_L = {"x1": compute_convective_flux(U_L["x1"], C_L["x1"], params, n["x1"]),
+            "x2": compute_convective_flux(U_L["x2"], C_L["x2"], params, n["x2"]),
+            "x3": compute_convective_flux(U_L["x3"], C_L["x3"], params, n["x3"])}
 
-    Fd_R = {"x1": compute_diffusive_flux(C_R["x1"], n["x1"]),
-            "x2": compute_diffusive_flux(C_R["x2"], n["x2"]),
-            "x3": compute_diffusive_flux(C_R["x3"], n["x3"])}
+    Fc_R = {"x1": compute_convective_flux(U_R["x1"], C_R["x1"], params, n["x1"]),
+            "x2": compute_convective_flux(U_R["x2"], C_R["x2"], params, n["x2"]),
+            "x3": compute_convective_flux(U_R["x3"], C_R["x3"], params, n["x3"])}
+
+    # Diffusive (parabolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    Fd_L = {"x1": compute_diffusive_flux(U_L["x1"], C_L["x1"], n["x1"]),
+            "x2": compute_diffusive_flux(U_L["x2"], C_L["x2"], n["x2"]),
+            "x3": compute_diffusive_flux(U_L["x3"], C_L["x3"], n["x3"])}
+
+    Fd_R = {"x1": compute_diffusive_flux(U_R["x1"], C_R["x1"], n["x1"]),
+            "x2": compute_diffusive_flux(U_R["x2"], C_R["x2"], n["x2"]),
+            "x3": compute_diffusive_flux(U_R["x3"], C_R["x3"], n["x3"])}
+
+    ## Characteristic wave velocities in the fluid frame on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    #kappa_L = {"x1": compute_characteristic_velocity(U_L["x1"], params),
+    #           "x2": compute_characteristic_velocity(U_L["x2"], params),
+    #           "x3": compute_characteristic_velocity(U_L["x3"], params)}
+    #
+    #kappa_R = {"x1": compute_characteristic_velocity(U_R["x1"], params),
+    #           "x2": compute_characteristic_velocity(U_R["x2"], params),
+    #           "x3": compute_characteristic_velocity(U_R["x3"], params)}
+    #
+    ## Normal velocities on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    #vn_L = {"x1": compute_normal_velocity(U_L["x1"], n["x1"]),
+    #        "x2": compute_normal_velocity(U_L["x2"], n["x2"]),
+    #        "x3": compute_normal_velocity(U_L["x3"], n["x3"])}
+    #
+    #vn_R = {"x1": compute_normal_velocity(U_R["x1"], n["x1"]),
+    #        "x2": compute_normal_velocity(U_R["x2"], n["x2"]),
+    #        "x3": compute_normal_velocity(U_R["x3"], n["x3"])}
+    #
+    ## Characteristic wave velocities in the lab frame (lambda_k = u_n + kappa_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    #lambda_L = {d: {w: vn_L[d] + kappa_L[d][w] for w in kappa_L[d]} for d in kappa_L}
+    #lambda_R = {d: {w: vn_R[d] + kappa_R[d][w] for w in kappa_R[d]} for d in kappa_R}
+
+    # Convective (hyperbolic) fluxes along each direction | shape (nx1+1, nx2, nx3) etc.
+    Fc = {"x1": {"internal_energy_density" : None},
+          "x2": {"internal_energy_density" : None},
+          "x3": {"internal_energy_density" : None}}
 
     # Diffusive (parabolic) fluxes along each direction | shape (nx1+1, nx2, nx3) etc.
     Fd = {"x1": diffusive_solver(Fd_L["x1"], Fd_R["x1"]),
@@ -266,12 +438,15 @@ def compute_rhs(
           "x3": diffusive_solver(Fd_L["x3"], Fd_R["x3"])}
 
     # Total fluxes | shape (nx1+1, nx2, nx3) etc.
-    F = {"x1": {k: Fd["x1"][k] for k in Fd["x1"]},
-         "x2": {k: Fd["x2"][k] for k in Fd["x2"]},
-         "x3": {k: Fd["x3"][k] for k in Fd["x3"]}}
-    
+    F = {"x1": {k: Fc["x1"][k] + Fd["x1"][k] for k in Fc["x1"]},
+         "x2": {k: Fc["x2"][k] + Fd["x2"][k] for k in Fc["x2"]},
+         "x3": {k: Fc["x3"][k] + Fd["x3"][k] for k in Fc["x3"]}}
+
+    # Geometric source terms | shape (nx1, nx2, nx3).
+    sg = compute_geometric_source(U, C, params, grid)
+
     # Physical source terms | shape (nx1, nx2, nx3).
-    sp = compute_physical_source(params)
+    sp = compute_physical_source(U, C, params)
 
     # Total source terms | shape (nx1, nx2, nx3).
     src = {k: sp[k] for k in sp}
@@ -288,6 +463,6 @@ def compute_rhs(
     knf = (slice(None), slice(None), slice(1, None))  # [:,:,1:]
 
     # Finite-volume RHS: divergence of fluxes plus geometric sources | shape (nx1, nx2, nx3).
-    rhs = {"internal_energy_density"   : -((F["x1"]["internal_energy_density"]*S["x1"])[inf]   - (F["x1"]["internal_energy_density"]*S["x1"])[ipf]   + (F["x2"]["internal_energy_density"]*S["x2"])[jnf]   - (F["x2"]["internal_energy_density"]*S["x2"])[jpf]   + (F["x3"]["internal_energy_density"]*S["x3"])[knf]   - (F["x3"]["internal_energy_density"]*S["x3"])[kpf])/V   + src["internal_energy_density"]}
+    rhs = {"internal_energy_density"   : -((F["x1"]["internal_energy_density"]*S["x1"])[inf] - (F["x1"]["internal_energy_density"]*S["x1"])[ipf] + (F["x2"]["internal_energy_density"]*S["x2"])[jnf] - (F["x2"]["internal_energy_density"]*S["x2"])[jpf] + (F["x3"]["internal_energy_density"]*S["x3"])[knf] - (F["x3"]["internal_energy_density"]*S["x3"])[kpf])/V + src["internal_energy_density"]}
 
     return rhs

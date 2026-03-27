@@ -42,8 +42,64 @@ def allocate_u(
     return U
 
 
+def compute_closure(
+    U      : dict,
+    params : dict,
+    grid   : dict
+    ) -> dict:
+    """
+    Compute closure variables from the conserved variables.
+
+    Arguments
+    ---------
+    U      : Conserved variable arrays (with ghost cells).
+    grid   : Discrete grid quantities, coordinates, and domain config.
+    params : Physical parameters.
+
+    Returns
+    -------
+    C : Closure variables (heat flux) with ghost cells.
+    """
+
+    # Unpack conserved variables.
+    Dx1 = U["electric_d_field_x1"]
+    Dx2 = U["electric_d_field_x2"]
+    Dx3 = U["electric_d_field_x3"]
+
+    # Unpack physical parameters
+    ep    = params["electric_permittivity"]
+    sigma = params["electrical_conductivity"]
+
+    # Primitive variables.
+    Ex1 = Dx1/ep
+    Ex2 = Dx2/ep
+    Ex3 = Dx3/ep
+
+    # Remove ghost cells from conserved and primitive variables.
+    ing = (slice(1,-1), slice(1,-1), slice(1,-1))
+    Ex1   = Ex1[ing]
+    Ex2   = Ex2[ing]
+    Ex3   = Ex3[ing]
+
+    # Current density from Ohm's law.
+    Jx1 = -sigma*Ex1
+    Jx2 = -sigma*Ex2
+    Jx3 = -sigma*Ex3
+
+    # Embed heat flux vector components with ghost cells.
+    Jx1, Jx2, Jx3 = [np.pad(J, 1) for J in [Jx1, Jx2, Jx3]]
+
+    # Closure variables.
+    C = {"Jx1" : Jx1,
+         "Jx2" : Jx2,
+         "Jx3" : Jx3}
+        
+    return C
+
+
 def compute_convective_flux(
     U      : dict,
+    C      : dict,
     params : dict,
     n      : np.array
     ) -> dict:
@@ -127,8 +183,52 @@ def compute_convective_flux(
     return Fc_n
 
 
+def compute_diffusive_flux(
+    U : dict,
+    C : dict,
+    n : np.ndarray
+    ) -> dict:
+    """
+    Compute the diffusive (parabolic) flux normal to an interface.
+
+    Arguments
+    ---------
+    U : Conserved variable arrays.
+    C : Closure variable arrays.
+    n : Unit normal vector to the interface.
+
+    Returns
+    -------
+    Fd_n : Normal diffusive flux for each conserved variable.
+    """
+
+    # Unpack normal vector components.
+    nx1 = n[0]
+    nx2 = n[1]
+    nx3 = n[2]
+
+    # Diffusive fluxes.
+    Fd = {"magnetic_field_x1"   : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0},
+          "magnetic_field_x2"   : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0},
+          "magnetic_field_x3"   : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0},
+          "electric_d_field_x1" : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0},
+          "electric_d_field_x2" : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0},
+          "electric_d_field_x3" : {"x1" : 0.0, "x2" : 0.0, "x3" : 0.0}}
+
+    # Normal diffusive fluxes.
+    Fd_n = {"magnetic_field_x1"   : nx1*Fd["magnetic_field_x1"]["x1"]   + nx2*Fd["magnetic_field_x1"]["x2"]   + nx3*Fd["magnetic_field_x1"]["x3"],
+            "magnetic_field_x2"   : nx1*Fd["magnetic_field_x2"]["x1"]   + nx2*Fd["magnetic_field_x2"]["x2"]   + nx3*Fd["magnetic_field_x2"]["x3"],
+            "magnetic_field_x3"   : nx1*Fd["magnetic_field_x3"]["x1"]   + nx2*Fd["magnetic_field_x3"]["x2"]   + nx3*Fd["magnetic_field_x3"]["x3"],
+            "electric_d_field_x1" : nx1*Fd["electric_d_field_x1"]["x1"] + nx2*Fd["electric_d_field_x1"]["x2"] + nx3*Fd["electric_d_field_x1"]["x3"],
+            "electric_d_field_x2" : nx1*Fd["electric_d_field_x2"]["x1"] + nx2*Fd["electric_d_field_x2"]["x2"] + nx3*Fd["electric_d_field_x2"]["x3"],
+            "electric_d_field_x3" : nx1*Fd["electric_d_field_x3"]["x1"] + nx2*Fd["electric_d_field_x3"]["x2"] + nx3*Fd["electric_d_field_x3"]["x3"]}
+
+    return Fd_n
+
+
 def compute_characteristic_velocity(
     U      : dict,
+    C      : dict,
     params : dict
     ) -> dict:
     """
@@ -137,6 +237,7 @@ def compute_characteristic_velocity(
     Arguments
     ---------
     U      : Conserved variable arrays.
+    C      : Closure variable arrays.
     params : Physical parameters.
     
     Returns
@@ -163,6 +264,7 @@ def compute_characteristic_velocity(
 
 def compute_geometric_source(
     U      : dict,
+    C      : dict,
     params : dict,
     grid   : dict
     ) -> dict:
@@ -172,6 +274,7 @@ def compute_geometric_source(
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
+    C      : Closure variable arrays (with ghost cells).
     params : Physical parameters.
     grid   : Discrete grid quantities, coordinates, and domain config.
 
@@ -275,14 +378,16 @@ def compute_geometric_source(
 
 def compute_physical_source(
     U      : dict,
+    C      : dict,
     params : dict
     ) -> dict:
     """
-    Compute the current density source terms.
+    Compute the physical source terms.
 
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
+    C      : Closure variable arrays.
     params : Physical parameters.
 
     Returns
@@ -295,39 +400,35 @@ def compute_physical_source(
     Dx2 = U["electric_d_field_x2"]
     Dx3 = U["electric_d_field_x3"]
 
-    # Unpack physical parameters
-    ep    = params["electric_permittivity"]
-    sigma = params["electrical_conductivity"]
+    # Unpack closure variables.
+    Jx1 = C["Jx1"]
+    Jx2 = C["Jx2"]
+    Jx3 = C["Jx3"]
 
-    # Primitive variables.
-    Ex1 = Dx1/ep
-    Ex2 = Dx2/ep
-    Ex3 = Dx3/ep
-
-    # Remove ghost cells from conserved and primitive variables.
+    # Remove ghost cells from closure variables.
     ing = (slice(1,-1), slice(1,-1), slice(1,-1))
-    Ex1   = Ex1[ing]
-    Ex2   = Ex2[ing]
-    Ex3   = Ex3[ing]
+    Jx1 = Jx1[ing]
+    Jx2 = Jx2[ing]
+    Jx3 = Jx3[ing]
 
-    # Current density source terms.
-    spg = {"magnetic_field_x1"   : 0.0,
+    # Electric current density source terms.
+    spe = {"magnetic_field_x1"   : 0.0,
            "magnetic_field_x2"   : 0.0,
            "magnetic_field_x3"   : 0.0,
-           "electric_d_field_x1" : -sigma*Ex1,
-           "electric_d_field_x2" : -sigma*Ex2,
-           "electric_d_field_x3" : -sigma*Ex3,}
+           "electric_d_field_x1" : Jx1,
+           "electric_d_field_x2" : Jx2,
+           "electric_d_field_x3" : Jx3,}
 
     # Total physical source terms.
-    sp = spg #{k: spg[k] + sp?[k] for k in spg} # For future implementation.
+    sp = spe
 
     return sp
 
 
 def compute_constraint_cleaning_source(
     U      : dict,
-    grid   : dict,
-    params : dict
+    params : dict,
+    grid   : dict
     ) -> dict:
     """
     Compute divergence-cleaning source terms for Maxwell constraints.
@@ -335,8 +436,8 @@ def compute_constraint_cleaning_source(
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
-    grid   : Discrete grid quantities, coordinates, and domain config.
     params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
 
     Returns
     -------
@@ -433,8 +534,8 @@ def compute_constraint_cleaning_source(
 
 def compute_dt(
     U      : dict,
-    grid   : dict,
     params : dict,
+    grid   : dict,
     cfl    : float
     ) -> float:
     """
@@ -443,8 +544,8 @@ def compute_dt(
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
-    grid   : Discrete grid quantities, coordinates, and domain config.
     params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
     cfl    : Courant–Friedrichs–Lewy number.
 
     Returns
@@ -468,7 +569,7 @@ def compute_dt(
          "x3": Bx3}
 
     # Characteristic wave velocities in the fluid frame | shape (nx1+2, nx2+2, nx3+2).
-    kappa = compute_characteristic_velocity(U, params)
+    kappa = compute_characteristic_velocity(U, C, params)
 
     # Characteristic wave velocities in the lab frame (lambda_k = mu_k) along each direction | shape (nx1, nx2, nx3).
     ing = (slice(1,-1), slice(1,-1), slice(1,-1))
@@ -482,7 +583,8 @@ def compute_dt(
 
     # Maximum domain-wide CFL rate.
     cfl_rate_c = np.max(cfl_rate_loc_c)
-    cfl_rate   = cfl_rate_c
+    cfl_rate_d = 0.0
+    cfl_rate   = cfl_rate_c + cfl_rate_d
 
     # CFL time step based on the fastest signal speed in the domain.
     dt = cfl/cfl_rate
@@ -518,49 +620,78 @@ def compute_rhs(
     n = grid["cell"]["normal"]
 
     # Unpack numerical schemes.
-    slope_limiter  = space_schemes["slope_limiter"]
-    riemann_solver = space_schemes["riemann_solver"]
+    slope_limiter    = space_schemes["slope_limiter"]
+    riemann_solver   = space_schemes["riemann_solver"]
+    diffusive_solver = None
+
+    # Closure variables | shape (nx1+2, nx2+2, nx3+2).
+    C = compute_closure(U, params, grid)
 
     # Conserved variables on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
     U_L, U_R = space_schemes["reconstructor"](U, L, slope_limiter)
 
-    # Convective (hyperbolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    Fc_L = {"x1": compute_convective_flux(U_L["x1"], params, n["x1"]),
-            "x2": compute_convective_flux(U_L["x2"], params, n["x2"]),
-            "x3": compute_convective_flux(U_L["x3"], params, n["x3"])}
+    # Closure variables on each left/right interface for along direction | shape (nx1+1, nx2, nx3) etc.
+    C_L, C_R = {"x1": None, "x2": None, "x3": None}, {"x1": None, "x2": None, "x3": None}
 
-    Fc_R = {"x1": compute_convective_flux(U_R["x1"], params, n["x1"]),
-            "x2": compute_convective_flux(U_R["x2"], params, n["x2"]),
-            "x3": compute_convective_flux(U_R["x3"], params, n["x3"])}
+    # Convective (hyperbolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    Fc_L = {"x1": compute_convective_flux(U_L["x1"], C_L["x1"], params, n["x1"]),
+            "x2": compute_convective_flux(U_L["x2"], C_L["x2"], params, n["x2"]),
+            "x3": compute_convective_flux(U_L["x3"], C_L["x3"], params, n["x3"])}
+
+    Fc_R = {"x1": compute_convective_flux(U_R["x1"], C_R["x1"], params, n["x1"]),
+            "x2": compute_convective_flux(U_R["x2"], C_R["x2"], params, n["x2"]),
+            "x3": compute_convective_flux(U_R["x3"], C_R["x3"], params, n["x3"])}
+
+    # Diffusive (parabolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    Fd_L = {"x1": compute_diffusive_flux(U_L["x1"], C_L["x1"], n["x1"]),
+            "x2": compute_diffusive_flux(U_L["x2"], C_L["x2"], n["x2"]),
+            "x3": compute_diffusive_flux(U_L["x3"], C_L["x3"], n["x3"])}
+
+    Fd_R = {"x1": compute_diffusive_flux(U_R["x1"], C_R["x1"], n["x1"]),
+            "x2": compute_diffusive_flux(U_R["x2"], C_R["x2"], n["x2"]),
+            "x3": compute_diffusive_flux(U_R["x3"], C_R["x3"], n["x3"])}
 
     # Characteristic wave velocities in the fluid frame on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    mu_L  = {"x1": compute_characteristic_velocity(U_L["x1"], params),
-             "x2": compute_characteristic_velocity(U_L["x2"], params),
-             "x3": compute_characteristic_velocity(U_L["x3"], params)}
+    kappa_L  = {"x1": compute_characteristic_velocity(U_L["x1"], C_L["x1"], params),
+                "x2": compute_characteristic_velocity(U_L["x2"], C_L["x2"], params),
+                "x3": compute_characteristic_velocity(U_L["x3"], C_L["x3"], params)}
 
-    mu_R  = {"x1": compute_characteristic_velocity(U_R["x1"], params),
-             "x2": compute_characteristic_velocity(U_R["x2"], params),
-             "x3": compute_characteristic_velocity(U_R["x3"], params)}
+    kappa_R  = {"x1": compute_characteristic_velocity(U_R["x1"], C_R["x1"], params),
+                "x2": compute_characteristic_velocity(U_R["x2"], C_R["x2"], params),
+                "x3": compute_characteristic_velocity(U_R["x3"], C_R["x3"], params)}
 
-    # Characteristic wave velocities in the lab frame (lambda_k = mu_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    lambda_L = {d: {w: mu_L[d][w] for w in mu_L[d]} for d in mu_L}
-    lambda_R = {d: {w: mu_R[d][w] for w in mu_R[d]} for d in mu_R}
+    ## Normal velocities on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    #vn_L = {"x1": compute_normal_velocity(U_L["x1"], n["x1"]),
+    #        "x2": compute_normal_velocity(U_L["x2"], n["x2"]),
+    #        "x3": compute_normal_velocity(U_L["x3"], n["x3"])}
+    #
+    #vn_R = {"x1": compute_normal_velocity(U_R["x1"], n["x1"]),
+    #        "x2": compute_normal_velocity(U_R["x2"], n["x2"]),
+    #        "x3": compute_normal_velocity(U_R["x3"], n["x3"])}
+
+    # Characteristic wave velocities in the lab frame (lambda_k = kappa_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    lambda_L = {d: {w: kappa_L[d][w] for w in kappa_L[d]} for d in kappa_L}
+    lambda_R = {d: {w: kappa_R[d][w] for w in kappa_R[d]} for d in kappa_R}
 
     # Convective (hyperbolic) fluxes along each direction | shape (nx1+1, nx2, nx3) etc.
     Fc = {"x1": riemann_solver(Fc_L["x1"], Fc_R["x1"], U_L["x1"], U_R["x1"], lambda_L["x1"], lambda_R["x1"]),
           "x2": riemann_solver(Fc_L["x2"], Fc_R["x2"], U_L["x2"], U_R["x2"], lambda_L["x2"], lambda_R["x2"]),
           "x3": riemann_solver(Fc_L["x3"], Fc_R["x3"], U_L["x3"], U_R["x3"], lambda_L["x3"], lambda_R["x3"])}
 
+    Fd = {"x1": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x3" : None, "electric_d_field_x3" : None},
+          "x2": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x3" : None, "electric_d_field_x3" : None},
+          "x3": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x3" : None, "electric_d_field_x3" : None}}
+
     # Total fluxes | shape (nx1+1, nx2, nx3) etc.
-    F = {"x1": {k: Fc["x1"][k] for k in Fc["x1"]},
-         "x2": {k: Fc["x2"][k] for k in Fc["x2"]},
-         "x3": {k: Fc["x3"][k] for k in Fc["x3"]}}
+    F = {"x1": {k: Fc["x1"][k] + Fd["x1"][k] for k in Fc["x1"]},
+         "x2": {k: Fc["x2"][k] + Fd["x2"][k] for k in Fc["x2"]},
+         "x3": {k: Fc["x3"][k] + Fd["x3"][k] for k in Fc["x3"]}}
 
     # Geometric source terms | shape (nx1, nx2, nx3).
-    sg = compute_geometric_source(U, params, grid)
+    sg = compute_geometric_source(U, C, params, grid)
     
     # Physical source terms | shape (nx1, nx2, nx3).
-    sp = compute_physical_source(U, params)
+    sp = compute_physical_source(U, C, params)
 
     # Cleaning source termes for Maxwell-Gauss and Maxwell-Thomson | shape (nx1, nx2, nx3).
     sc = compute_constraint_cleaning_source(U, grid, params)

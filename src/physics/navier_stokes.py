@@ -43,8 +43,8 @@ def allocate_u(
 
 def compute_closure(
     U      : dict,
-    grid   : dict,
-    params : dict
+    params : dict,
+    grid   : dict
     ) -> dict:
     """
     Compute closure variables from the conserved variables.
@@ -67,6 +67,10 @@ def compute_closure(
     rhovx3 = U["momentum_x3"]
     rhoE   = U["energy_density"]
 
+    # Unpack physical parameters.
+    ga = params["heat_capacity_ratio"]
+    mu = params["dynamic_viscosity"]
+
     # Unpack physical lengths.
     L = grid["cell"]["geometry"]["length"]
     Lx1 = L["x1"]
@@ -85,10 +89,6 @@ def compute_closure(
     dx2_ln_hx3 = grid["lame"]["derivatives"]["x2"]["ln_hx3"]
     dx3_ln_hx1 = grid["lame"]["derivatives"]["x3"]["ln_hx1"]
     dx3_ln_hx2 = grid["lame"]["derivatives"]["x3"]["ln_hx2"]
-    
-    # Unpack physical parameters.
-    gamma = params["heat_capacity_ratio"]
-    mu    = params["dynamic_viscosity"]
 
     # Primitive variables.
     vx1 = rhovx1/rho
@@ -97,7 +97,7 @@ def compute_closure(
     E   = rhoE/rho
 
     # Pressure from the ideal gas equation of state.
-    P = (gamma-1.0)*rho*(E - (vx1**2+vx2**2+vx3**2)/2.0)
+    P = (ga-1.0)*rho*(E - (vx1**2+vx2**2+vx3**2)/2.0)
 
     # Slices of neighboring cell centers for centered derivatives: i_m = i-1, i_p = i+1.
     im = (slice(None, -2), slice(1, -1), slice(1, -1)) # [:-2, 1:-1, 1:-1]
@@ -142,7 +142,7 @@ def compute_closure(
     Tx1x1, Tx2x2, Tx3x3, Tx1x2, Tx1x3, Tx2x3, Tx2x1, Tx3x1, Tx3x2 = [np.pad(T, 1) for T in [Tx1x1, Tx2x2, Tx3x3, Tx1x2, Tx1x3, Tx2x3, Tx2x1, Tx3x1, Tx3x2]]
 
     # Closure variables.
-    C = {"P" : P,
+    C = {"P"     : P,
          "Tx1x1" : Tx1x1,
          "Tx2x2" : Tx2x2,
          "Tx3x3" : Tx3x3,
@@ -157,9 +157,10 @@ def compute_closure(
 
 
 def compute_convective_flux(
-    U : dict,
-    C : dict,
-    n : np.array
+    U      : dict,
+    C      : dict,
+    params : dict,
+    n      : np.array
     ) -> dict:
     """
     Compute the convective (hyperbolic) flux normal to an interface.
@@ -304,10 +305,10 @@ def compute_characteristic_velocity(
     P = C["P"]
 
     # Unpack physical parameters
-    gamma = params["heat_capacity_ratio"]
+    ga = params["heat_capacity_ratio"]
 
     # Sound speed.
-    cs = np.sqrt(gamma*P/rho)
+    cs = np.sqrt(ga*P/rho)
 
     # Characteristic wave velocities in the fluid frame.
     kappa = {"contact"        : np.full(rho.shape,0),
@@ -357,18 +358,20 @@ def compute_normal_velocity(
 
 
 def compute_geometric_source(
-    U    : dict,
-    C    : dict,
-    grid : dict
+    U      : dict,
+    C      : dict,
+    params : dict,
+    grid   : dict
     ) -> dict:
     """
     Compute the convective and diffusive geometric source terms for curvilinear coordinates.
 
     Arguments
     ---------
-    U    : Conserved variable arrays (with ghost cells).
-    C    : Closure variable arrays (with ghost cells).
-    grid : Discrete grid quantities, coordinates, and domain config.
+    U      : Conserved variable arrays (with ghost cells).
+    C      : Closure variable arrays (with ghost cells).
+    params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
 
     Returns
     -------
@@ -455,10 +458,11 @@ def compute_geometric_source(
 
 def compute_physical_source(
     U      : dict,
+    C      : dict,
     params : dict
     ) -> dict:
     """
-    Compute the gravitational source terms.
+    Compute the physical source terms.
 
     Arguments
     ---------
@@ -502,15 +506,15 @@ def compute_physical_source(
            "energy_density" : rho*(gx1*vx1 + gx2*vx2 + gx3*vx3)}
 
     # Total physical source terms.
-    sp = spg #{k: spg[k] + sp?[k] for k in spg} # For future implementation.
+    sp = spg
 
     return sp
 
 
 def compute_dt(
     U      : dict,
-    grid   : dict,
     params : dict,
+    grid   : dict,
     cfl    : float
     ) -> float:
     """
@@ -519,8 +523,8 @@ def compute_dt(
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
-    grid   : Discrete grid quantities, coordinates, and domain config.
     params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
     cfl    : Courant–Friedrichs–Lewy number.
 
     Returns
@@ -553,7 +557,7 @@ def compute_dt(
          "x3": vx3}
 
     # Closure variables | shape (nx1+2, nx2+2, nx3+2).
-    C = compute_closure(U, grid, params)
+    C = compute_closure(U, params, grid)
 
     # Characteristic wave velocities in the fluid frame | shape (nx1+2, nx2+2, nx3+2).
     kappa = compute_characteristic_velocity(U, C, params)
@@ -616,7 +620,7 @@ def compute_rhs(
     diffusive_solver = space_schemes["diffusive_solver"]
 
     # Closure variables | shape (nx1+2, nx2+2, nx3+2).
-    C = compute_closure(U, grid, params)
+    C = compute_closure(U, params, grid)
 
     # Conserved variables on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
     U_L, U_R = space_schemes["reconstructor"](U, L, slope_limiter)
@@ -625,13 +629,13 @@ def compute_rhs(
     C_L, C_R = space_schemes["reconstructor"](C, L, slope_limiter)
 
     # Convective (hyperbolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    Fc_L = {"x1": compute_convective_flux(U_L["x1"], C_L["x1"], n["x1"]),
-            "x2": compute_convective_flux(U_L["x2"], C_L["x2"], n["x2"]),
-            "x3": compute_convective_flux(U_L["x3"], C_L["x3"], n["x3"])}
+    Fc_L = {"x1": compute_convective_flux(U_L["x1"], C_L["x1"], params, n["x1"]),
+            "x2": compute_convective_flux(U_L["x2"], C_L["x2"], params, n["x2"]),
+            "x3": compute_convective_flux(U_L["x3"], C_L["x3"], params, n["x3"])}
 
-    Fc_R = {"x1": compute_convective_flux(U_R["x1"], C_R["x1"], n["x1"]),
-            "x2": compute_convective_flux(U_R["x2"], C_R["x2"], n["x2"]),
-            "x3": compute_convective_flux(U_R["x3"], C_R["x3"], n["x3"])}
+    Fc_R = {"x1": compute_convective_flux(U_R["x1"], C_R["x1"], params, n["x1"]),
+            "x2": compute_convective_flux(U_R["x2"], C_R["x2"], params, n["x2"]),
+            "x3": compute_convective_flux(U_R["x3"], C_R["x3"], params, n["x3"])}
 
     # Diffusive (parabolic) fluxes on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
     Fd_L = {"x1": compute_diffusive_flux(U_L["x1"], C_L["x1"], n["x1"]),
@@ -642,15 +646,14 @@ def compute_rhs(
             "x2": compute_diffusive_flux(U_R["x2"], C_R["x2"], n["x2"]),
             "x3": compute_diffusive_flux(U_R["x3"], C_R["x3"], n["x3"])}
 
-
     # Characteristic wave velocities in the fluid frame on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    mu_L  = {"x1": compute_characteristic_velocity(U_L["x1"], C_L["x1"], params),
-             "x2": compute_characteristic_velocity(U_L["x2"], C_L["x2"], params),
-             "x3": compute_characteristic_velocity(U_L["x3"], C_L["x3"], params)}
+    kappa_L  = {"x1": compute_characteristic_velocity(U_L["x1"], C_L["x1"], params),
+                "x2": compute_characteristic_velocity(U_L["x2"], C_L["x2"], params),
+                "x3": compute_characteristic_velocity(U_L["x3"], C_L["x3"], params)}
 
-    mu_R  = {"x1": compute_characteristic_velocity(U_R["x1"], C_R["x1"], params),
-             "x2": compute_characteristic_velocity(U_R["x2"], C_R["x2"], params),
-             "x3": compute_characteristic_velocity(U_R["x3"], C_R["x3"], params)}
+    kappa_R  = {"x1": compute_characteristic_velocity(U_R["x1"], C_R["x1"], params),
+                "x2": compute_characteristic_velocity(U_R["x2"], C_R["x2"], params),
+                "x3": compute_characteristic_velocity(U_R["x3"], C_R["x3"], params)}
 
     # Normal velocities on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
     vn_L = {"x1": compute_normal_velocity(U_L["x1"], n["x1"]),
@@ -661,9 +664,9 @@ def compute_rhs(
             "x2": compute_normal_velocity(U_R["x2"], n["x2"]),
             "x3": compute_normal_velocity(U_R["x3"], n["x3"])}
 
-    # Characteristic wave velocities in the lab frame (lambda_k = u_n + mu_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
-    lambda_L = {d: {w: vn_L[d] + mu_L[d][w] for w in mu_L[d]} for d in mu_L}
-    lambda_R = {d: {w: vn_R[d] + mu_R[d][w] for w in mu_R[d]} for d in mu_R}
+    # Characteristic wave velocities in the lab frame (lambda_k = u_n + kappa_k) on each left/right interface along each direction | shape (nx1+1, nx2, nx3) etc.
+    lambda_L = {d: {w: vn_L[d] + kappa_L[d][w] for w in kappa_L[d]} for d in kappa_L}
+    lambda_R = {d: {w: vn_R[d] + kappa_R[d][w] for w in kappa_R[d]} for d in kappa_R}
 
     # Convective (hyperbolic) fluxes along each direction | shape (nx1+1, nx2, nx3) etc.
     Fc = {"x1": riemann_solver(Fc_L["x1"], Fc_R["x1"], U_L["x1"], U_R["x1"], lambda_L["x1"], lambda_R["x1"]),
@@ -681,10 +684,10 @@ def compute_rhs(
          "x3": {k: Fc["x3"][k] + Fd["x3"][k] for k in Fc["x3"]}}
 
     # Geometric source terms | shape (nx1, nx2, nx3).
-    sg = compute_geometric_source(U, C, grid)
+    sg = compute_geometric_source(U, C, params, grid)
     
     # Physical source terms | shape (nx1, nx2, nx3).
-    sp = compute_physical_source(U, params)
+    sp = compute_physical_source(U, C, params)
 
     # Total source terms | shape (nx1, nx2, nx3).
     src = {k: sg[k] + sp[k] for k in sg}
