@@ -18,7 +18,7 @@ Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
 
 ### Numerical Methods
 
-The discretization follows a finite-volume approach. Convective (hyperbolic) terms are treated using Godunov-type finite-volume schemes with approximate Riemann solvers, while diffusive (parabolic) terms are handled with centered schemes. The numerical pipeline is decomposed into modular building blocks, each of which can be independently selected and extended. The currently implemented methods are summarized below:
+The discretization follows a finite-volume approach. Convective (*hyperbolic*) terms are treated using Godunov-type finite-volume schemes with approximate Riemann solvers, while diffusive (*parabolic*) terms are handled with centered schemes. The numerical pipeline is decomposed into modular building blocks, each of which can be independently selected and extended. The currently implemented methods are summarized below:
 
 <table>
   <tbody>
