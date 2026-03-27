@@ -85,10 +85,12 @@ def get_setup(
     physics = maxwell
 
     # Physical parameters.
-    params = {"magnetic_permeability"      : 1.0, #mu
-              "electric_permittivity"      : 1.0, #ep
-              "electrical_conductivity"    : 0.0, #sigma
-              "charge_density"             : 0.0} #rho
+    params = {"magnetic_permeability"   : 1.0,   #mu
+              "electric_permittivity"   : 1.0,   #ep
+              "electrical_conductivity" : 0.0,   #sigma
+              "charge_density"          : 0.0,   #rho
+              "magnetic_cleaning_coeff" : 0.001, #chi_B
+              "electric_cleaning_coeff" : 0.001} #chi_D
 
     # Coordinate system.
     coordinate_system = "cartesian"
