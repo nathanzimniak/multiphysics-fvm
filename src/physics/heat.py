@@ -433,9 +433,9 @@ def compute_rhs(
     #lambda_R = {d: {w: vn_R[d] + kappa_R[d][w] for w in kappa_R[d]} for d in kappa_R}
 
     # Convective (hyperbolic) fluxes along each direction | shape (nx1+1, nx2, nx3) etc.
-    Fc = {"x1": {"internal_energy_density" : None},
-          "x2": {"internal_energy_density" : None},
-          "x3": {"internal_energy_density" : None}}
+    Fc = {"x1": {"internal_energy_density" : 0.0},
+          "x2": {"internal_energy_density" : 0.0},
+          "x3": {"internal_energy_density" : 0.0}}
 
     # Diffusive (parabolic) fluxes along each direction | shape (nx1+1, nx2, nx3) etc.
     Fd = {"x1": diffusive_solver(Fd_L["x1"], Fd_R["x1"]),
