@@ -10,7 +10,6 @@
 
 <p align="center">
     <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/navier_stokes.png">
-    <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/maxwell.png">
 </p>
 
 <br>
