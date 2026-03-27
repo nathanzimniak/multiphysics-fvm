@@ -9,9 +9,9 @@
 <br>
 
 <p align="center">
-    <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/navier_stokes.png" width="800">
-    <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/heat.png" width="800">
     <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/maxwell.png" width="800">
+    <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/heat.png" width="800">
+    <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/navier_stokes.png" width="800">
 </p>
 
 <br>
