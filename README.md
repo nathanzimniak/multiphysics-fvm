@@ -1,4 +1,4 @@
-<h1 align="center">Multiphysics FVM</h1>
+<h2 align="center">Multiphysics FVM</h2>
 
 <br>
 
