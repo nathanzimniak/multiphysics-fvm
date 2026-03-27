@@ -9,9 +9,9 @@ It is designed to support **multiple physics modules** through a common solver i
 Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
 
 <p align="center">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/navier_stokes2.png">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/heat2.png">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/maxwell2.png">
+  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/navier_stokes.png">
+  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/heat.png">
+  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/maxwell.png">
 </p>
 
 ---
