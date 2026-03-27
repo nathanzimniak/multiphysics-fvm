@@ -20,28 +20,6 @@ Written in **Python** with the *NumPy* library, the codebase prioritizes readabi
 
 Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
 
-
-
-
-
----
-
-## Multiphysics FVM
-
-<br>
-
-A modular and extensible **3D finite-volume framework** for structured grids (cartesian, cylindrical, spherical).
-
-It is designed to support **multiple physics modules** through a common solver interface. At the current stage, implemented modules are primarily run one at a time (uncoupled). However, the architecture is coupling-ready: tightly coupled multiphysics can be added without rewriting the solver core. Written in pure Python with the *NumPy* library, the codebase prioritizes readability, maintainability, and extensibility over raw performance.
-
-Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
-
-<p align="center">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/navier_stokes.png">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/heat.png">
-  <img src="https://github.com/nathanzimniak/multiphysics-fvm/blob/main/img/maxwell.png">
-</p>
-
 ---
 
 ### Numerical Methods
