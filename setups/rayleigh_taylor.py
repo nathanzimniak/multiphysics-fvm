@@ -127,7 +127,7 @@ def get_setup(
 
     # Time configuration.
     time_config = {"t_start" : 0.0,
-                   "t_end"   : 10.0,
+                   "t_end"   : 5.0,
                    "CFL"     : 0.2}
 
     # Time integrator.
