@@ -3,8 +3,8 @@ File   : io.py
 Author : Nathan ZIMNIAK
 Date   : 2026-03-10
 -----------------
-Snapshot saving utilities for the finite-volume solver.
-Saves conserved variables and setup parameters to HDF5 format.
+Snapshot input/output utilities for the finite-volume solver.
+Saves and loads conserved variables and setup parameters in HDF5 format.
 """
 
 import h5py
