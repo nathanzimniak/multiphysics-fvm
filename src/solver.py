@@ -7,7 +7,6 @@ Orchestrates the simulation: state initialization, initial/boundary
 conditions, and the main time loop.
 """
 
-import numpy as np
 from src.grid import geometry
 
 
