@@ -472,11 +472,9 @@ def compute_constraint_cleaning_source(
     dx3_lnhx2 = grid["lame"]["derivatives"]["x3"]["ln_hx2"]
 
     # Unpack physical parameters.
-    rho = params["charge_density"]
-
-    # Cleaning coefficients.
-    chi_B = 0.0
-    chi_D = 0.0
+    rho   = params["charge_density"]
+    chi_B = params["magnetic_cleaning_coeff"]
+    chi_D = params["electric_cleaning_coeff"]
 
     # Physical-domain slice.
     ing = (slice(1, -1), slice(1, -1), slice(1, -1))
@@ -564,6 +562,10 @@ def compute_dt(
     Lx2 = L["x2"]
     Lx3 = L["x3"]
 
+    # Unpack physical parameters.
+    chi_B = params["magnetic_cleaning_coeff"]
+    chi_D = params["electric_cleaning_coeff"]
+
     B = {"x1": Bx1,
          "x2": Bx2,
          "x3": Bx3}
@@ -586,7 +588,10 @@ def compute_dt(
 
     # Maximum domain-wide CFL rate.
     cfl_rate_c = np.max(cfl_rate_loc_c)
-    cfl_rate_d = 0.0
+    #cfl_rate_d = 0.0
+    chi_max = max(chi_B, chi_D)
+    cfl_rate_loc_d = 2.0*chi_max*(1.0/Lx1**2 + 1.0/Lx2**2 + 1.0/Lx3**2)
+    cfl_rate_d = np.max(cfl_rate_loc_d)
     cfl_rate   = cfl_rate_c + cfl_rate_d
 
     # CFL time step based on the fastest signal speed in the domain.
