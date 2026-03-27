@@ -475,8 +475,8 @@ def compute_constraint_cleaning_source(
     rho = params["charge_density"]
 
     # Cleaning coefficients.
-    chi_B = 0.02
-    chi_D = 0.02
+    chi_B = 0.0
+    chi_D = 0.0
 
     # Physical-domain slice.
     ing = (slice(1, -1), slice(1, -1), slice(1, -1))
