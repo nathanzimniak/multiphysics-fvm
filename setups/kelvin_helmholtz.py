@@ -3,8 +3,7 @@ File   : kelvin_helmholtz.py
 Author : Nathan ZIMNIAK
 Date   : 2026-03-10
 -----------------
-Kelvin-Helmholtz instability in Cartesian coordinates.
-Two shear layers with a sinusoidal velocity perturbation.
+Kelvin-Helmholtz instability.
 """
 
 import numpy as np
@@ -16,8 +15,8 @@ from src          import io
 
 def initializer(
     U          : dict,
-    grid       : dict,
     params     : dict,
+    grid       : dict,
     ics_params : dict
     ) -> None:
     """
@@ -26,8 +25,8 @@ def initializer(
     Arguments
     ----------
     U          : Conserved variable arrays (with ghost cells).
-    grid       : Discrete grid quantities, coordinates, and domain config.
     params     : Physical parameters.
+    grid       : Discrete grid quantities, coordinates, and domain config.
     ics_params : Initial condition parameters.
     
     Returns
@@ -72,12 +71,12 @@ def initializer(
     # Shear layer profiles.
     y1 = 0.25
     y2 = 0.75
-    s1 = np.tanh((y - y1) / delta)
-    s2 = np.tanh((y2 - y) / delta)
+    s1 = np.tanh((y-y1)/delta)
+    s2 = np.tanh((y2-y)/delta)
 
     # Initial conditions.
-    rho_init  = rho_out + 0.5*(rho_in - rho_out)*(s1 + s2)
-    vx1_init  = U0*(s1 + s2 - 1.0)
+    rho_init  = rho_out + 0.5*(rho_in-rho_out)*(s1+s2)
+    vx1_init  = U0*(s1+s2-1.0)
     vx2_init  = A*np.sin(2.0*np.pi*kx*x)
     vx3_init  = np.zeros((nx1, nx2, nx3))
     rhoE_init = P0/(gamma-1.0) + 0.5*rho_init*(vx1_init**2+vx2_init**2+vx3_init**2)
@@ -105,8 +104,8 @@ def get_setup(
 
     # Physical parameters.
     params = {"heat_capacity_ratio"        : 1.4,
-              "gravitational_acceleration" : [0.0, 0.0, 0.0],
-              "dynamic_viscosity"          : 0.0}
+              "dynamic_viscosity"          : 0.000,
+              "gravitational_acceleration" : [0.0, 0.0, 0.0]}
 
     # Coordinate system.
     coordinate_system = "cartesian"
@@ -117,7 +116,9 @@ def get_setup(
                    "x3_min": 0.0, "x3_max": 1.0, "nx3": 1}
 
     # Time configuration.
-    time_config = {"t_start": 0.0, "t_end": 10.0, "CFL": 0.2}
+    time_config = {"t_start" : 0.0,
+                   "t_end"   : 10.0,
+                   "CFL"     : 0.2}
 
     # Time integrator.
     time_integrator = time_integrators.rk3_ssp

@@ -3,8 +3,7 @@ File   : rayleigh_taylor.py
 Author : Nathan ZIMNIAK
 Date   : 2026-03-10
 -----------------
-Rayleigh-Taylor instability in Cartesian coordinates.
-Heavy fluid on top of light fluid with a sinusoidal interface perturbation.
+Rayleigh-Taylor instability.
 """
 
 import numpy as np
@@ -16,19 +15,18 @@ from src          import io
 
 def initializer(
     U          : dict,
-    grid       : dict,
     params     : dict,
+    grid       : dict,
     ics_params : dict
     ) -> None:
     """
-    Initialize a Rayleigh-Taylor instability from a hydrostatic equilibrium
-    with a plane density interface and a vertical velocity perturbation.
+    Initialize a Kelvin-Helmholtz instability with two shear layers.
 
     Arguments
     ----------
     U          : Conserved variable arrays (with ghost cells).
-    grid       : Discrete grid quantities, coordinates, and domain config.
     params     : Physical parameters.
+    grid       : Discrete grid quantities, coordinates, and domain config.
     ics_params : Initial condition parameters.
     
     Returns
@@ -74,19 +72,16 @@ def initializer(
     rhoE   = rhoE[ing]
 
     # Plane density interface.
-    s = np.tanh((y - y_int) / delta)
+    s = np.tanh((y-y_int)/delta)
 
     # Initial conditions.
-    rho_init = rho_bot + 0.5*(rho_top - rho_bot)*(1.0 + s)
+    rho_init = rho_bot + 0.5*(rho_top-rho_bot)*(1.0+s)
     vx1_init = np.zeros((nx1, nx2, nx3))
-    vx2_init = A*np.cos(2.0*np.pi*ky*x)*np.exp(-((y - y_int)/sigma)**2)
+    vx2_init = A*np.cos(2.0*np.pi*ky*x)*np.exp(-((y-y_int)/sigma)**2)
     vx3_init = np.zeros((nx1, nx2, nx3))
 
     # Hydrostatic pressure profile.
-    #P_init = np.zeros_like(rho_init)
-    #P_init[:, 0, :] = P0
     dy = y[:, 1:, :] - y[:, :-1, :]
-    #rho_avg = 0.5*(rho_init[:, 1:, :] + rho_init[:, :-1, :])
     P_init = np.zeros_like(rho_init)
     P_init[:, 0, :] = P0
     for j in range(1, nx2):
@@ -94,7 +89,7 @@ def initializer(
         P_init[:, j, :] = P_init[:, j-1, :] - rho_mid * np.abs(gy) * dy[:, j-1, :]
 
     # Total energy density.
-    rhoE_init = P_init/(gamma-1.0) + 0.5*rho_init*(vx1_init**2 + vx2_init**2 + vx3_init**2)
+    rhoE_init = P_init/(gamma-1.0) + 0.5*rho_init*(vx1_init**2+vx2_init**2+vx3_init**2)
 
     # Fill conserved variable arrays.
     rho[:]    = rho_init
@@ -119,8 +114,8 @@ def get_setup(
 
     # Physical parameters.
     params = {"heat_capacity_ratio"        : 1.4,
-              "gravitational_acceleration" : [0.0, -2.0, 0.0],
-              "dynamic_viscosity"          : 0.0001}
+              "dynamic_viscosity"          : 0.0001,
+              "gravitational_acceleration" : [0.0, -2.0, 0.0],}
 
     # Coordinate system.
     coordinate_system = "cartesian"
@@ -131,7 +126,9 @@ def get_setup(
                    "x3_min": 0.0, "x3_max": 1.0, "nx3": 1}
 
     # Time configuration.
-    time_config = {"t_start": 0.0, "t_end": 10.0, "CFL": 0.2}
+    time_config = {"t_start" : 0.0,
+                   "t_end"   : 10.0,
+                   "CFL"     : 0.2}
 
     # Time integrator.
     time_integrator = time_integrators.rk3_ssp
