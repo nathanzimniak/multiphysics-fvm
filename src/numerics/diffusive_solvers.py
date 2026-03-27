@@ -7,8 +7,6 @@ Diffusion solvers for the finite-volume solver.
 Available solvers: centered.
 """
 
-import numpy as np
-
 
 def centered(
     Fd_l : dict,
