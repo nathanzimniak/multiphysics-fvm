@@ -475,8 +475,8 @@ def compute_constraint_cleaning_source(
     rho = params["charge_density"]
 
     # Cleaning coefficients.
-    chi_B = 0.0
-    chi_D = 0.0
+    chi_B = 0.05
+    chi_D = 0.05
 
     # Physical-domain slice.
     ing = (slice(1, -1), slice(1, -1), slice(1, -1))
@@ -697,7 +697,7 @@ def compute_rhs(
     sp = compute_physical_source(U, C, params)
 
     # Cleaning source termes for Maxwell-Gauss and Maxwell-Thomson | shape (nx1, nx2, nx3).
-    sc = compute_constraint_cleaning_source(U, grid, params)
+    sc = compute_constraint_cleaning_source(U, params, grid)
 
     # Total source terms | shape (nx1, nx2, nx3).
     src = {k: sg[k] + sp[k] + sc[k] for k in sg}
