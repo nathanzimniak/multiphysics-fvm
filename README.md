@@ -67,7 +67,7 @@ Simulations are launched via the command line using ```main.py``` and a setup fi
 python main.py --setup kelvin_helmholtz
 ```
 
-You can create new simulations by adding configuration files in the ```setups/``` folder.
+Outputs are saved in **HDF5** format. You can create new simulations by adding configuration files in the ```setups/``` folder.
 
 ---
 
