@@ -94,10 +94,6 @@ def van_leer(
     same_sign = (np.sign(bwd_slope) + np.sign(fwd_slope))/2.0
 
     # Harmonic mean of the two slopes (van Leer selects a smooth limited slope).
-    #denom = np.abs(bwd_slope) + np.abs(fwd_slope)
-    #harmonic_slope = np.where((np.abs(bwd_slope) + np.abs(fwd_slope)) > 0.0, 2.0*bwd_slope*fwd_slope/(np.abs(bwd_slope) + np.abs(fwd_slope)), 0.0)
-
-    # Safe division only where denom > 0.
     denom = np.abs(bwd_slope) + np.abs(fwd_slope)
     harmonic_slope = np.zeros_like(bwd_slope)
     mask = denom > 0.0
