@@ -11,9 +11,9 @@ def euler_explicit(
     rhs           : callable,
     U             : dict,
     dt            : float,
+    params        : dict,
     grid          : dict,
     space_schemes : dict,
-    params        : dict,
     bcs           : dict,
     apply_bcs     : callable
     ) -> None:
@@ -25,9 +25,9 @@ def euler_explicit(
     rhs           : Right-hand side of the governing equations.
     U             : Conserved variable arrays (with ghost cells).
     dt            : Time-step size.
+    params        : Physical parameters.
     grid          : Discrete grid quantities, coordinates, and domain config.
     space_schemes : Spatial discretization schemes.
-    params        : Physical parameters.
     bcs           : Boundary condition configuration.
     apply_bcs     : Boundary condition application function.
 
@@ -51,23 +51,23 @@ def rk3(
     rhs           : callable,
     U             : dict,
     dt            : float,
+    params        : dict,
     grid          : dict,
     space_schemes : dict,
-    params        : dict,
     bcs           : dict,
     apply_bcs     : callable
     ) -> None:
     """
-    Advance the simulation state by one explicit RK3 time step.
+    Advance the simulation state by one explicit Euler time step.
 
     Arguments
     ----------
     rhs           : Right-hand side of the governing equations.
     U             : Conserved variable arrays (with ghost cells).
     dt            : Time-step size.
+    params        : Physical parameters.
     grid          : Discrete grid quantities, coordinates, and domain config.
     space_schemes : Spatial discretization schemes.
-    params        : Physical parameters.
     bcs           : Boundary condition configuration.
     apply_bcs     : Boundary condition application function.
 
@@ -107,23 +107,23 @@ def rk3_ssp(
     rhs           : callable,
     U             : dict,
     dt            : float,
+    params        : dict,
     grid          : dict,
     space_schemes : dict,
-    params        : dict,
     bcs           : dict,
     apply_bcs     : callable
     ) -> None:
     """
-    Advance the simulation state by one explicit SSPRK3 time step.
+    Advance the simulation state by one explicit Euler time step.
 
     Arguments
     ----------
     rhs           : Right-hand side of the governing equations.
     U             : Conserved variable arrays (with ghost cells).
     dt            : Time-step size.
+    params        : Physical parameters.
     grid          : Discrete grid quantities, coordinates, and domain config.
     space_schemes : Spatial discretization schemes.
-    params        : Physical parameters.
     bcs           : Boundary condition configuration.
     apply_bcs     : Boundary condition application function.
 
@@ -163,23 +163,23 @@ def rk4(
     rhs           : callable,
     U             : dict,
     dt            : float,
+    params        : dict,
     grid          : dict,
     space_schemes : dict,
-    params        : dict,
     bcs           : dict,
     apply_bcs     : callable
     ) -> None:
     """
-    Advance the simulation state by one explicit RK4 time step.
+    Advance the simulation state by one explicit Euler time step.
 
     Arguments
     ----------
     rhs           : Right-hand side of the governing equations.
     U             : Conserved variable arrays (with ghost cells).
     dt            : Time-step size.
+    params        : Physical parameters.
     grid          : Discrete grid quantities, coordinates, and domain config.
     space_schemes : Spatial discretization schemes.
-    params        : Physical parameters.
     bcs           : Boundary condition configuration.
     apply_bcs     : Boundary condition application function.
 
