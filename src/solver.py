@@ -64,8 +64,8 @@ def apply_bcs(
 
 def apply_ics(
     U      : dict,
-    grid   : dict,
     params : dict,
+    grid   : dict,
     ics    : dict
     ) -> None:
     """
@@ -74,8 +74,8 @@ def apply_ics(
     Arguments
     ---------
     U      : Conserved variable arrays (with ghost cells).
-    grid   : Discrete grid quantities, coordinates, and domain config.
     params : Physical parameters.
+    grid   : Discrete grid quantities, coordinates, and domain config.
     ics    : Initial condition configuration (initializer + parameters).
     
     Returns
@@ -83,7 +83,7 @@ def apply_ics(
     None
     """
 
-    ics["initializer"](U, grid, params, ics["parameters"])
+    ics["initializer"](U, params, grid, ics["parameters"])
 
 
 def run(
@@ -129,7 +129,7 @@ def run(
     U = allocate_u(grid_config)
 
     # Initial and boundary conditions.
-    apply_ics(U, grid, params, ics)
+    apply_ics(U, params, grid, ics)
     apply_bcs(U, bcs)
 
     # Time loop.
@@ -138,14 +138,14 @@ def run(
     while t < t_end:
 
         # Compute time step.
-        dt = compute_dt(U, grid, params, cfl)
+        dt = compute_dt(U, params, grid, cfl)
 
         # Advance solution by one time step.
-        time_integrator(rhs, U, dt, grid, space_schemes, params, bcs, apply_bcs)
+        time_integrator(rhs, U, dt, params, grid, space_schemes, bcs, apply_bcs)
 
         # Save snapshot and print progress.
         if n % output_freq == 0:
-            print(f"n = {n:6d} | t = {t:.2f} / {t_end:.2f} | dt = {dt:.2e} | {100*t/t_end:.1f}%")
+            print(f"n = {n:6d} | t = {t:.2f}/{t_end:.2f} | dt = {dt:.2e} | {100*t/t_end:.1f}%")
             saver(U, setup, t, n, save_dir)
 
         t += dt
