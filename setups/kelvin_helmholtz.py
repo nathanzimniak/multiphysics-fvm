@@ -92,7 +92,7 @@ def initializer(
 def get_setup(
     ) -> dict:
     """
-    Return the full configuration dictionary for the Kelvin-Helmholtz setup.
+    Compute the full configuration dictionary for the Kelvin-Helmholtz setup.
 
     Returns
     -------
@@ -103,9 +103,9 @@ def get_setup(
     physics = navier_stokes
 
     # Physical parameters.
-    params = {"heat_capacity_ratio"        : 1.4,
-              "dynamic_viscosity"          : 0.000,
-              "gravitational_acceleration" : [0.0, 0.0, 0.0]}
+    params = {"heat_capacity_ratio"        : 1.4,             #gamma
+              "dynamic_viscosity"          : 0.0001,          #mu
+              "gravitational_acceleration" : [0.0, 0.0, 0.0]} #g
 
     # Coordinate system.
     coordinate_system = "cartesian"
