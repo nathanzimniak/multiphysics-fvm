@@ -155,6 +155,11 @@ def compute_diffusive_flux(
     Fd_n : Normal diffusive flux for each conserved variable.
     """
 
+    # Unpack closure variables.
+    phix1 = C["phix1"]
+    phix2 = C["phix2"]
+    phix3 = C["phix3"]
+
     # Unpack normal vector components.
     nx1 = n[0]
     nx2 = n[1]

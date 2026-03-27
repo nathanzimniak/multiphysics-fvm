@@ -568,6 +568,9 @@ def compute_dt(
          "x2": Bx2,
          "x3": Bx3}
 
+    # Closure variables | shape (nx1+2, nx2+2, nx3+2).
+    C = compute_closure(U, params, grid)
+
     # Characteristic wave velocities in the fluid frame | shape (nx1+2, nx2+2, nx3+2).
     kappa = compute_characteristic_velocity(U, C, params)
 
@@ -678,9 +681,9 @@ def compute_rhs(
           "x2": riemann_solver(Fc_L["x2"], Fc_R["x2"], U_L["x2"], U_R["x2"], lambda_L["x2"], lambda_R["x2"]),
           "x3": riemann_solver(Fc_L["x3"], Fc_R["x3"], U_L["x3"], U_R["x3"], lambda_L["x3"], lambda_R["x3"])}
 
-    Fd = {"x1": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x3" : None, "electric_d_field_x3" : None},
-          "x2": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x3" : None, "electric_d_field_x3" : None},
-          "x3": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x3" : None, "electric_d_field_x3" : None}}
+    Fd = {"x1": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x2" : None, "electric_d_field_x3" : None},
+          "x2": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x2" : None, "electric_d_field_x3" : None},
+          "x3": {"magnetic_field_x1" : None, "magnetic_field_x2" : None, "magnetic_field_x3" : None, "electric_d_field_x1" : None, "electric_d_field_x2" : None, "electric_d_field_x3" : None}}
 
     # Total fluxes | shape (nx1+1, nx2, nx3) etc.
     F = {"x1": {k: Fc["x1"][k] + Fd["x1"][k] for k in Fc["x1"]},
