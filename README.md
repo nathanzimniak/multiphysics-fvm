@@ -4,6 +4,8 @@
 
 <p align="center">
     A modular and extensible <strong>3D finite-volume framework</strong> for structured grids (cartesian, cylindrical, spherical).
+    <br>
+    Written in <strong>Python</strong> with the <eg>NumPy</eg> library, the codebase prioritizes readability, and simplicity over raw performance.
 </p>
 
 <br>
@@ -16,7 +18,11 @@
 
 <br>
 
-Written in **Python** with the *NumPy* library, the codebase prioritizes readability, and simplicity over raw performance. It is designed to support **multiple physics modules** through a common solver interface. At the current stage, implemented modules are primarily run one at a time (uncoupled).
+---
+
+### Physical modules
+
+The framework is designed to support **multiple physics modules** through a common solver interface. At the current stage, implemented modules are primarily run one at a time (uncoupled). However, the architecture is coupling-ready: tightly coupled multiphysics can be added without rewriting the solver core.
 
 Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
 
