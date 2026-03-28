@@ -5,7 +5,7 @@
 <p align="center">
     A modular and extensible <strong>3D finite-volume framework</strong> for structured grids (cartesian, cylindrical, spherical).
     <br>
-    Written in <strong>Python</strong> with the <eg>NumPy</eg> library, the codebase prioritizes readability, and simplicity over raw performance.
+    Written in <strong>Python</strong> with the <em>NumPy</em> library, the codebase prioritizes readability, and simplicity over raw performance.
 </p>
 
 <br>
