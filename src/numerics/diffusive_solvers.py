@@ -1,5 +1,5 @@
 """
-File   : diffusion_solvers.py
+File   : diffusive_solvers.py
 Author : Nathan ZIMNIAK
 Date   : 2026-03-12
 -----------------
