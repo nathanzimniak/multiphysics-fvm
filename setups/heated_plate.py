@@ -20,7 +20,7 @@ def initializer(
     ics_params : dict
     ) -> None:
     """
-    Initialize a Kelvin-Helmholtz instability with two shear layers.
+    Initialize a Gaussian hot spot temperature field on the plate.
 
     Arguments
     ----------
