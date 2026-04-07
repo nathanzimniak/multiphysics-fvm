@@ -73,7 +73,7 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Simulations are launched via the command line using ```main.py``` and a setup file from the ```setups/``` directory:
+Simulations are launched via the command line using a setup file from the ```setups/``` directory:
 
 ```
 python main.py --setup kelvin_helmholtz
