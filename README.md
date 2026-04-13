@@ -59,6 +59,13 @@ The discretization follows a finite-volume approach. Convective (*hyperbolic*) t
 
 ---
 
+### Requirements
+
+- **Interpreter**: Python ≥ 3.6
+- **Libraries** : NumPy, H5py
+
+---
+
 ### Getting Started
 
 Clone the repository:
