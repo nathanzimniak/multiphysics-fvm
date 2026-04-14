@@ -18,17 +18,15 @@
 
 <br>
 
----
-
-### Physical modules
+> ### Physical modules
 
 The framework is designed to support **multiple physics modules** through a common solver interface. At the current stage, implemented modules are primarily run one at a time (uncoupled). However, the architecture is coupling-ready: tightly coupled multiphysics can be added without rewriting the solver core.
 
 Currently implemented physics module: `navier_stokes`, `heat`, `maxwell`.
 
----
+#
 
-### Numerical Methods
+> ### Numerical Methods
 
 The discretization follows a finite-volume approach. Convective (*hyperbolic*) terms are treated using Godunov-type finite-volume schemes with approximate Riemann solvers, while diffusive (*parabolic*) terms are handled with centered schemes. The numerical pipeline is decomposed into modular building blocks, each of which can be independently selected and extended. The currently implemented methods are summarized below:
 
@@ -57,16 +55,16 @@ The discretization follows a finite-volume approach. Convective (*hyperbolic*) t
   </tbody>
 </table>
 
----
+#
 
-### Requirements
+> ### Requirements
 
 - **Interpreter**: Python ≥ 3.6
 - **Libraries** : NumPy, H5py
 
----
+#
 
-### Getting Started
+> ### Getting Started
 
 Clone the repository:
 
@@ -88,8 +86,8 @@ python main.py --setup kelvin_helmholtz
 
 Outputs are saved in **HDF5** format. You can create new simulations by adding configuration files in the ```setups/``` folder.
 
----
+#
 
-### Contributing
+> ### Contributing
 
 Contributions are welcome. Feel free to open an issue or submit a pull request if you find a bug, want to add a numerical method, or implement a new physical module.
