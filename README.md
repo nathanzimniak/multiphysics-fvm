@@ -3,7 +3,7 @@
 <br>
 
 <p align="center">
-    A modular and extensible <strong>3D finite-volume framework</strong> for structured grids (cartesian, cylindrical, spherical).
+    A <strong>3D finite-volume framework</strong> for structured grids (cartesian, cylindrical, spherical).
     <br>
     Written in <strong>Python</strong> using the <strong>NumPy</strong> library.
 </p>
